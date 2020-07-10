@@ -1,8 +1,7 @@
 package com.deerlili.spring.cloud.weather.job;
 
 import com.deerlili.spring.cloud.weather.entity.City;
-import com.deerlili.spring.cloud.weather.service.CityDataService;
-import com.deerlili.spring.cloud.weather.service.WeatherDataService;
+import com.deerlili.spring.cloud.weather.service.WeatherDataCollectionService;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,9 +24,7 @@ public class WeatherDataSyncJob extends QuartzJobBean {
     private static final Logger logger = LoggerFactory.getLogger(WeatherDataSyncJob.class);
 
     @Autowired
-    private CityDataService cityDataService;
-    @Autowired
-    private WeatherDataService weatherDataService;
+    private WeatherDataCollectionService weatherDataCollectionService;
 
     @Override
     protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {
@@ -34,7 +32,12 @@ public class WeatherDataSyncJob extends QuartzJobBean {
         // 获取城市ID列表
         List<City> cityList = null;
         try {
-            cityList = cityDataService.listCity();
+            // TODO 调用城市微服务
+            // 这里先把数据写死
+            cityList = new ArrayList<>();
+            City city = new City();
+            city.setCityId("101280101");
+            cityList.add(city);
         } catch (Exception e) {
             //e.printStackTrace();
             logger.info("Exception！", e);
@@ -43,7 +46,7 @@ public class WeatherDataSyncJob extends QuartzJobBean {
         for (City city:cityList) {
             String cityId = city.getCityId();
             logger.info("Weather Data Sync Job cityId:" + cityId);
-            weatherDataService.syncDataByCityId(cityId);
+            weatherDataCollectionService.syncDataByCityId(cityId);
         }
         logger.info("Weather Data Sync Job. End!");
     }
